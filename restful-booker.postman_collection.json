@@ -1,0 +1,975 @@
+{
+	"info": {
+		"_postman_id": "c8003866-4d5a-4f03-9301-83bcc6d37a77",
+		"name": "restful-booker",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "41734260"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Criar token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var token_schema = {\r",
+									"  \"$schema\": \"http://json-schema.org/draft-07/schema#\",\r",
+									"  \"title\": \"Generated schema for Root\",\r",
+									"  \"type\": \"object\",\r",
+									"  \"properties\": {\r",
+									"    \"token\": {\r",
+									"      \"type\": \"string\"\r",
+									"    }\r",
+									"  },\r",
+									"  \"required\": [\r",
+									"    \"token\"\r",
+									"  ]\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Validar schema\", function(){\r",
+									"    pm.response.to.have.jsonSchema(token_schema);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"//Salva o token em uma variavél\r",
+									"var resposta = pm.response.json()\r",
+									"\r",
+									"pm.environment.set(\"token\", resposta.token );"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"password123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Booking",
+			"item": [
+				{
+					"name": "Obter todos os ids de reservas",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.unset(\"schema\");\r",
+									"\r",
+									"pm.globals.set(\"schema\", {\r",
+									"  \"type\": \"array\",\r",
+									"  \"items\": {\r",
+									"    \"type\": \"object\",\r",
+									"    \"properties\": {\r",
+									"      \"bookingid\": {\r",
+									"        \"type\": \"number\"\r",
+									"      }\r",
+									"    },\r",
+									"    \"required\": [\r",
+									"      \"bookingid\"\r",
+									"    ]\r",
+									"  }\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// validar o contrato\r",
+									"const Ajv = require(\"ajv\")\r",
+									"const ajv = new Ajv({allErrors: true, verbose: true})\r",
+									"\r",
+									"pm.test('Schema is valid', function () {\r",
+									"    pm.expect(ajv.validate(pm.globals.get('schema'), pm.response.json()), JSON.stringify(ajv.errors)).to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Capturar id da reserva\", function() {\r",
+									"    pm.globals.set(\"bookingid\", pm.response.json()[0].bookingid);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/booking",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"booking"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Criar reserva",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// validar Status Code\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"// validar o contrato\r",
+									"const Ajv = require(\"ajv\")\r",
+									"const ajv = new Ajv({allErrors: true, verbose: true})\r",
+									"\r",
+									"pm.test('Schema is valid', function () {\r",
+									"    pm.expect(ajv.validate(pm.globals.get('schema'), pm.response.json()), JSON.stringify(ajv.errors)).to.be.true;\r",
+									"});\r",
+									"\r",
+									"//validar retorno de objetos\r",
+									"pm.test('Validar retorno de objetos', function() {\r",
+									"    pm.expect(pm.response.json()).to.be.an('object')\r",
+									"});\r",
+									"\r",
+									"//salvar o Novo Id cadastrado\r",
+									"pm.test('Salvar novo Id', function(){\r",
+									"    pm.globals.unset(\"bookingid\");\r",
+									"    pm.globals.set(\"bookingid\",pm.response.json().bookingid);\r",
+									"})\r",
+									"\r",
+									"pm.test('Salvar novo nome', function(){\r",
+									"    pm.globals.unset(\"firstname\");\r",
+									"    pm.globals.set(\"firstname\",pm.response.json().booking.firstname);\r",
+									"})\r",
+									"\r",
+									"pm.test('Salvar novo sobrenome', function(){\r",
+									"    pm.globals.unset(\"lastname\");\r",
+									"    pm.globals.set(\"lastname\",pm.response.json().booking.lastname);\r",
+									"})\r",
+									"\r",
+									"pm.test('Salvar novo valor total', function(){\r",
+									"    pm.globals.unset(\"totalprice\");\r",
+									"    pm.globals.set(\"totalprice\",pm.response.json().booking.totalprice);\r",
+									"})\r",
+									"\r",
+									"pm.test('Salvar novo depositpaid', function(){\r",
+									"    pm.globals.unset(\"depositpaid\");\r",
+									"    pm.globals.set(\"depositpaid\",pm.response.json().booking.depositpaid);\r",
+									"})\r",
+									"\r",
+									"pm.test('Salvar nova data de checkin', function(){\r",
+									"    pm.globals.unset(\"checkin\");\r",
+									"    pm.globals.set(\"checkin\",pm.response.json().booking.bookingdates.checkin);\r",
+									"})\r",
+									"\r",
+									"pm.test('Salvar nova data de checkout', function(){\r",
+									"    pm.globals.unset(\"checkout\");\r",
+									"    pm.globals.set(\"checkout\",pm.response.json().booking.bookingdates.checkout);\r",
+									"})\r",
+									"\r",
+									"pm.test('Salvar novo adicionais', function(){\r",
+									"    pm.globals.unset(\"additionalneeds\");\r",
+									"    pm.globals.set(\"additionalneeds\",pm.response.json().booking.additionalneeds);\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.unset(\"schema\")\r",
+									"\r",
+									"pm.globals.set (\"schema\", {\r",
+									"  \"type\": \"object\",\r",
+									"  \"properties\": {\r",
+									"    \"bookingid\": {\r",
+									"      \"type\": \"integer\"\r",
+									"    },\r",
+									"    \"booking\": {\r",
+									"      \"type\": \"object\",\r",
+									"      \"properties\": {\r",
+									"        \"firstname\": {\r",
+									"          \"type\": \"string\"\r",
+									"        },\r",
+									"        \"lastname\": {\r",
+									"          \"type\": \"string\"\r",
+									"        },\r",
+									"        \"totalprice\": {\r",
+									"          \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"depositpaid\": {\r",
+									"          \"type\": \"boolean\"\r",
+									"        },\r",
+									"        \"bookingdates\": {\r",
+									"          \"type\": \"object\",\r",
+									"          \"properties\": {\r",
+									"            \"checkin\": {\r",
+									"              \"type\": \"string\"\r",
+									"            },\r",
+									"            \"checkout\": {\r",
+									"              \"type\": \"string\"\r",
+									"            }\r",
+									"          },\r",
+									"          \"required\": [\r",
+									"            \"checkin\",\r",
+									"            \"checkout\"\r",
+									"          ]\r",
+									"        },\r",
+									"        \"additionalneeds\": {\r",
+									"          \"type\": \"string\"\r",
+									"        }\r",
+									"      },\r",
+									"      \"required\": [\r",
+									"        \"firstname\",\r",
+									"        \"lastname\",\r",
+									"        \"totalprice\",\r",
+									"        \"depositpaid\",\r",
+									"        \"bookingdates\",\r",
+									"        \"additionalneeds\"\r",
+									"      ]\r",
+									"    }\r",
+									"  },\r",
+									"  \"required\": [\r",
+									"    \"bookingid\",\r",
+									"    \"booking\"\r",
+									"  ]\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"firstname\" : \"Sally\",\r\n    \"lastname\" : \"Brown\",\r\n    \"totalprice\" : 111,\r\n    \"depositpaid\" : true,\r\n    \"bookingdates\" : {\r\n        \"checkin\" : \"2018-01-01\",\r\n        \"checkout\" : \"2019-01-01\"\r\n    },\r\n    \"additionalneeds\" : \"Breakfast\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/booking",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"booking"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obter detalhes da reserva",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function() {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// validar o contrato\r",
+									"const Ajv = require(\"ajv\")\r",
+									"const ajv = new Ajv({allErrors: true, verbose: true})\r",
+									"\r",
+									"pm.test('Schema is valid', function () {\r",
+									"    pm.expect(ajv.validate(pm.globals.get('schema'), pm.response.json()), JSON.stringify(ajv.errors)).to.be.true;\r",
+									"});\r",
+									"\r",
+									"// armazenar response.json() em uma variável\r",
+									"var resposta = pm.response.json();\r",
+									"\r",
+									"// validar detalhes da reserva\r",
+									"pm.test(\"Validar nome\", function () {\r",
+									"    pm.expect(resposta.firstname).to.eql(pm.globals.get(\"firstname\"));\r",
+									"    pm.expect(resposta.lastname).to.eql(pm.globals.get(\"lastname\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Validar totalprice\", function () {\r",
+									"    pm.expect(resposta.totalprice).to.eql(pm.globals.get(\"totalprice\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Validar depositpaid\", function () {\r",
+									"    pm.expect(resposta.depositpaid).to.eql(pm.globals.get(\"depositpaid\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Validar checkin\", function () {\r",
+									"    pm.expect(resposta.bookingdates.checkin).to.eql(pm.globals.get(\"checkin\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Validar checkout\", function () {\r",
+									"    pm.expect(resposta.bookingdates.checkout).to.eql(pm.globals.get(\"checkout\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Validar additionalneeds\", function () {\r",
+									"    pm.expect(resposta.additionalneeds).to.eql(pm.globals.get(\"additionalneeds\"));\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.unset(\"schema\")\r",
+									"\r",
+									"pm.globals.set(\"schema\", {\r",
+									"    \"type\": \"object\",\r",
+									"    \"properties\": {\r",
+									"        \"firstname\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"lastname\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"totalprice\": {\r",
+									"            \"type\": \"number\"\r",
+									"        },\r",
+									"        \"depositpaid\": {\r",
+									"            \"type\": \"boolean\"\r",
+									"        },\r",
+									"        \"bookingdates\": {\r",
+									"            \"type\": \"object\",\r",
+									"            \"properties\": {\r",
+									"                \"checkin\": {\r",
+									"                    \"type\": \"string\"\r",
+									"                },\r",
+									"                \"checkout\": {\r",
+									"                    \"type\": \"string\"\r",
+									"                }\r",
+									"            },\r",
+									"            \"required\": [\r",
+									"                \"checkin\",\r",
+									"                \"checkout\"\r",
+									"            ]\r",
+									"        },\r",
+									"        \"additionalneeds\": {\r",
+									"            \"type\": \"string\"\r",
+									"        }\r",
+									"    },\r",
+									"    \"required\": [\r",
+									"        \"firstname\",\r",
+									"        \"lastname\",\r",
+									"        \"totalprice\",\r",
+									"        \"depositpaid\",\r",
+									"        \"bookingdates\"\r",
+									"    ]\r",
+									"})\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://restful-booker.herokuapp.com/booking/{{bookingid}}",
+							"protocol": "https",
+							"host": [
+								"restful-booker",
+								"herokuapp",
+								"com"
+							],
+							"path": [
+								"booking",
+								"{{bookingid}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar reserva por nome",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// validar o contrato\r",
+									"const Ajv = require(\"ajv\")\r",
+									"const ajv = new Ajv({allErrors: true, verbose: true})\r",
+									"\r",
+									"pm.test('Schema is valid', function () {\r",
+									"    pm.expect(ajv.validate(pm.globals.get('schema'), pm.response.json()), JSON.stringify(ajv.errors)).to.be.true;\r",
+									"});\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.unset(\"schema\")\r",
+									"\r",
+									"pm.globals.set(\"schema\", {\r",
+									"  \"type\": \"array\",\r",
+									"  \"items\": {\r",
+									"    \"type\": \"object\",\r",
+									"    \"properties\": {\r",
+									"      \"bookingid\": {\r",
+									"        \"type\": \"number\"\r",
+									"      }\r",
+									"    },\r",
+									"    \"required\": [\r",
+									"      \"bookingid\"\r",
+									"    ]\r",
+									"  }\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/booking?firstname={{firstname}}&lastname={{lastname}}",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"booking"
+							],
+							"query": [
+								{
+									"key": "firstname",
+									"value": "{{firstname}}"
+								},
+								{
+									"key": "lastname",
+									"value": "{{lastname}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar reserva por data",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// validar o contrato\r",
+									"const Ajv = require(\"ajv\")\r",
+									"const ajv = new Ajv({allErrors: true, verbose: true})\r",
+									"\r",
+									"pm.test('Schema is valid', function () {\r",
+									"    pm.expect(ajv.validate(pm.globals.get('schema'), pm.response.json()), JSON.stringify(ajv.errors)).to.be.true;\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.unset(\"schema\")\r",
+									"\r",
+									"pm.globals.set(\"schema\", {\r",
+									"  \"type\": \"array\",\r",
+									"  \"items\": {\r",
+									"    \"type\": \"object\",\r",
+									"    \"properties\": {\r",
+									"      \"bookingid\": {\r",
+									"        \"type\": \"number\"\r",
+									"      }\r",
+									"    },\r",
+									"    \"required\": [\r",
+									"      \"bookingid\"\r",
+									"    ]\r",
+									"  }\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/booking?checkin={{checkin}}&checkout={{checkout}}",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"booking"
+							],
+							"query": [
+								{
+									"key": "checkin",
+									"value": "{{checkin}}"
+								},
+								{
+									"key": "checkout",
+									"value": "{{checkout}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar toda a reserva",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.unset(\"schema\")\r",
+									"\r",
+									"pm.globals.set (\"schema\", {\r",
+									"  \"type\": \"object\",\r",
+									"  \"properties\": {\r",
+									"    \"firstname\": {\r",
+									"      \"type\": \"string\"\r",
+									"    },\r",
+									"    \"lastname\": {\r",
+									"      \"type\": \"string\"\r",
+									"    },\r",
+									"    \"totalprice\": {\r",
+									"      \"type\": \"integer\"\r",
+									"    },\r",
+									"    \"depositpaid\": {\r",
+									"      \"type\": \"boolean\"\r",
+									"    },\r",
+									"    \"bookingdates\": {\r",
+									"      \"type\": \"object\",\r",
+									"      \"properties\": {\r",
+									"        \"checkin\": {\r",
+									"          \"type\": \"string\"\r",
+									"        },\r",
+									"        \"checkout\": {\r",
+									"          \"type\": \"string\"\r",
+									"        }\r",
+									"      },\r",
+									"      \"required\": [\r",
+									"        \"checkin\",\r",
+									"        \"checkout\"\r",
+									"      ]\r",
+									"    },\r",
+									"    \"additionalneeds\": {\r",
+									"      \"type\": \"string\"\r",
+									"    }\r",
+									"  },\r",
+									"  \"required\": [\r",
+									"    \"firstname\",\r",
+									"    \"lastname\",\r",
+									"    \"totalprice\",\r",
+									"    \"depositpaid\",\r",
+									"    \"bookingdates\",\r",
+									"    \"additionalneeds\"\r",
+									"  ]\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// validar o contrato\r",
+									"const Ajv = require(\"ajv\")\r",
+									"const ajv = new Ajv({allErrors: true, verbose: true})\r",
+									"\r",
+									"pm.test('Schema is valid', function () {\r",
+									"    pm.expect(ajv.validate(pm.globals.get('schema'), pm.response.json()), JSON.stringify(ajv.errors)).to.be.true;\r",
+									"});\r",
+									"\r",
+									"//validar retorno de objetos\r",
+									"pm.test('Validar array de objetos', function() {\r",
+									"    pm.expect(pm.response.json()).to.be.an('object')\r",
+									"});\r",
+									"\r",
+									"//validar que o depositpaid foi alterado \r",
+									"pm.test('Validar alteração do parametro depositpaid', function() {\r",
+									"    pm.expect(pm.response.json().depositpaid).to.be.eql(false)\r",
+									"} )\r",
+									"\r",
+									"pm.test(\"Validar nome\", function () {\r",
+									"    pm.expect(pm.response.json().firstname).to.eql(\"Camila\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Validar sobrenome\", function () {\r",
+									"    pm.expect(pm.response.json().lastname).to.eql(\"Silva\");\r",
+									"});\r",
+									"\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Cookie",
+								"value": "token={{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"firstname\": \"Camila\",\r\n    \"lastname\": \"Silva\",\r\n    \"totalprice\": 111,\r\n    \"depositpaid\": false,\r\n    \"bookingdates\": {\r\n        \"checkin\": \"2018-01-01\",\r\n        \"checkout\": \"2019-01-01\"\r\n    },\r\n    \"additionalneeds\": \"Breakfast\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/booking/{{bookingid}}",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"booking",
+								"{{bookingid}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar parcialmente a reserva",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.unset(\"schema\")\r",
+									"\r",
+									"pm.globals.set (\"schema\", {\r",
+									"  \"type\": \"object\",\r",
+									"  \"properties\": {\r",
+									"    \"firstname\": {\r",
+									"      \"type\": \"string\"\r",
+									"    },\r",
+									"    \"lastname\": {\r",
+									"      \"type\": \"string\"\r",
+									"    },\r",
+									"    \"totalprice\": {\r",
+									"      \"type\": \"integer\"\r",
+									"    },\r",
+									"    \"depositpaid\": {\r",
+									"      \"type\": \"boolean\"\r",
+									"    },\r",
+									"    \"bookingdates\": {\r",
+									"      \"type\": \"object\",\r",
+									"      \"properties\": {\r",
+									"        \"checkin\": {\r",
+									"          \"type\": \"string\"\r",
+									"        },\r",
+									"        \"checkout\": {\r",
+									"          \"type\": \"string\"\r",
+									"        }\r",
+									"      },\r",
+									"      \"required\": [\r",
+									"        \"checkin\",\r",
+									"        \"checkout\"\r",
+									"      ]\r",
+									"    },\r",
+									"    \"additionalneeds\": {\r",
+									"      \"type\": \"string\"\r",
+									"    }\r",
+									"  },\r",
+									"  \"required\": [\r",
+									"    \"firstname\",\r",
+									"    \"lastname\",\r",
+									"    \"totalprice\",\r",
+									"    \"depositpaid\",\r",
+									"    \"bookingdates\",\r",
+									"    \"additionalneeds\"\r",
+									"  ]\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"// validar o contrato\r",
+									"const Ajv = require(\"ajv\")\r",
+									"const ajv = new Ajv({allErrors: true, verbose: true})\r",
+									"\r",
+									"pm.test('Schema is valid', function () {\r",
+									"    pm.expect(ajv.validate(pm.globals.get('schema'), pm.response.json()), JSON.stringify(ajv.errors)).to.be.true;\r",
+									"});\r",
+									"\r",
+									"//validar retorno de objetos\r",
+									"pm.test('Validar array de objetos', function() {\r",
+									"    pm.expect(pm.response.json()).to.be.an('object')\r",
+									"});\r",
+									"\r",
+									"//validar que o firstname foi alterado \r",
+									"pm.test('Validar alteração do parametro firstname', function() {\r",
+									"    pm.expect(pm.response.json().firstname).to.be.eql('CSC')\r",
+									"} )\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Cookie",
+								"value": "token={{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"firstname\": \"CSC\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/booking/{{bookingid}}",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"booking",
+								"{{bookingid}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Excluir reserva",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {\r",
+									"    pm.response.to.have.status(201);\r",
+									"});\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Cookie",
+								"value": "token={{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/booking/{{bookingid}}",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"booking",
+								"{{bookingid}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
